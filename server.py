@@ -4,10 +4,10 @@ import json
 import logging
 from transformers import pipeline
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Initialize a text classification pipeline with a DistilBERT model for sentiment analysis
+
 evaluator = pipeline("sentiment-analysis", model="distilbert-base-uncased")
 
 # Function to evaluate the response with adjusted scoring logic
@@ -19,11 +19,11 @@ async def evaluate_response(response: str) -> int:
     logging.info(f"Evaluating response: {response}")
     
     try:
-        # Get sentiment analysis result (labels can be 'LABEL_0' for negative, 'LABEL_1' for positive)
+       
         result = evaluator(response)
-        logging.info(f"Model result: {result}")  # Debugging line to print raw model output
+        logging.info(f"Model result: {result}")  
         
-        # We assume that a positive sentiment corresponds to a better response
+       
         sentiment = result[0]['label']
         sentiment_score = 0
         feedback_message = ""
@@ -35,17 +35,17 @@ async def evaluate_response(response: str) -> int:
             sentiment_score = 3
             feedback_message = "The prompt might benefit from further clarification and better structure."
 
-        # Adjust the score based on the length of the input prompt
-        length_adjustment = min(len(response.split()) / 10, 1)  # Normalize length to a max of 1
+    
+        length_adjustment = min(len(response.split()) / 10, 1)  
 
-        # Final score combines sentiment score and length adjustment, scaled to 0-10
-        final_score = sentiment_score + length_adjustment * 3  # Sentiment weighted more heavily
+       
+        final_score = sentiment_score + length_adjustment * 3 
         logging.info(f"Final adjusted score: {final_score}")
         
-        # Ensure the score is within the range of 1 to 10
+      
         final_score = max(1, min(final_score, 10))
 
-        # Provide feedback based on the score
+      
         if final_score >= 9:
             feedback_message = "Excellent prompt! Well-structured, clear, and informative."
         elif final_score >= 6:
@@ -61,36 +61,36 @@ async def evaluate_response(response: str) -> int:
         logging.error(f"Error during evaluation: {e}")
         return 5, "An error occurred during the evaluation process."
 
-# Handle the WebSocket connection
+# WebSocket connection
 async def handle_connection(websocket):
-    total_score = 0  # Accumulate total score across prompts
+    total_score = 0  
     try:
         logging.info("New client connected.")
         while True:
             try:
-                # Receive and parse the message from the client
+               
                 message = await websocket.recv()
                 data = json.loads(message)
-                if data.get("type") == "end":  # End the session if "end" is received
+                if data.get("type") == "end":  
                     break
                 user_prompt = data.get("content")
                 logging.info(f"Received prompt: {user_prompt}")
 
-                # Skip evaluation if the prompt is empty
+              
                 if not user_prompt:
                     await websocket.send(json.dumps({"error": "Empty prompt received"}))
                     continue
 
-                # Evaluate the response and update the total score
+            
                 score, feedback = await evaluate_response(user_prompt)
-                total_score += score  # Update total score
+                total_score += score  
 
-                # Send feedback to the client with the score
+             
                 feedback_response = {
                     "type": "feedback",
                     "score": score,
-                    "total_score": total_score,  # Include the total score
-                    "feedback": feedback,  # Include the feedback message
+                    "total_score": total_score,  
+                    "feedback": feedback,  
                 }
                 logging.info(f"Sending feedback: {feedback_response}")
                 await websocket.send(json.dumps(feedback_response))
@@ -111,8 +111,7 @@ async def handle_connection(websocket):
 async def main():
     logging.info("Starting WebSocket server on ws://localhost:8080")
     async with websockets.serve(handle_connection, "localhost", 8080):
-        await asyncio.Future()  # Run forever
-
+        await asyncio.Future() 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
