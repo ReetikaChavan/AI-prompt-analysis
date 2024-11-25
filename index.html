@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Evaluation Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: linear-gradient(90deg, #0575E6, #021B79); /* Background gradient for the entire page */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 400px;
+            background-color: #c233de; /* Background color for the chatbox */
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background-color: #6c63ff;
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .chat-body {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #f9f9f9; /* Background for the white space in the chatbox */
+        }
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .message.user {
+            background-color: #e0e0e0;
+            align-self: flex-end;
+        }
+        .message.bot {
+            background-color: #6c63ff;
+            color: #ffffff;
+            align-self: flex-start;
+        }
+        .chat-footer {
+            padding: 15px;
+            background-color: #f9f9f9;
+            display: flex;
+            gap: 10px;
+        }
+        .chat-footer textarea {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: none;
+        }
+        .chat-footer button {
+            padding: 10px 15px;
+            font-size: 14px;
+            color: #ffffff;
+            background-color: #6c63ff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .chat-footer button:hover {
+            background-color: #5b54e3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">AI Chatbot</div>
+        <div class="chat-body" id="chatBody">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-footer">
+            <textarea id="userPrompt" rows="1" placeholder="Type your prompt here..."></textarea>
+            <button id="submit">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        const chatBody = document.getElementById('chatBody');
+
+        ws.onopen = () => {
+            console.log("Connected to server");
+        };
+
+        ws.onmessage = function (event) {
+            const message = JSON.parse(event.data);
+
+            // Create message elements for both score and feedback
+            const botMessageScore = document.createElement('div');
+            botMessageScore.classList.add('message', 'bot');
+            botMessageScore.innerText = `Score: ${message.score}`;
+            chatBody.appendChild(botMessageScore);
+
+            const botMessageFeedback = document.createElement('div');
+            botMessageFeedback.classList.add('message', 'bot');
+            botMessageFeedback.innerText = `Feedback: ${message.feedback}`;
+            chatBody.appendChild(botMessageFeedback);
+
+            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+        };
+
+        document.getElementById('submit').onclick = function () {
+            const userPrompt = document.getElementById('userPrompt').value.trim();
+            if (userPrompt === "") {
+                alert("Please enter a valid prompt!");
+                return;
+            }
+
+            // Display user's message in the chat
+            const userMessage = document.createElement('div');
+            userMessage.classList.add('message', 'user');
+            userMessage.innerText = userPrompt;
+            chatBody.appendChild(userMessage);
+
+            // Send the prompt to the server
+            const data = { type: "prompt", content: userPrompt };
+            ws.send(JSON.stringify(data));
+
+            // Clear the input field
+            document.getElementById('userPrompt').value = "";
+            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+        };
+    </script>
+</body>
+</html>
