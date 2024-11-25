@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-image: linear-gradient(90deg, #0575E6, #021B79); /* Background gradient for the entire page */
+            background-image: linear-gradient(90deg, #0575E6, #021B79); 
             margin: 0;
             padding: 0;
             display: flex;
@@ -17,7 +17,7 @@
         }
         .chat-container {
             width: 400px;
-            background-color: #c233de; /* Background color for the chatbox */
+            background-color: #c233de; 
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -38,7 +38,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background-color: #f9f9f9; /* Background for the white space in the chatbox */
+            background-color: #f9f9f9; 
         }
         .message {
             padding: 10px;
@@ -105,7 +105,7 @@
         ws.onmessage = function (event) {
             const message = JSON.parse(event.data);
 
-            // Create message elements for both score and feedback
+           
             const botMessageScore = document.createElement('div');
             botMessageScore.classList.add('message', 'bot');
             botMessageScore.innerText = `Score: ${message.score}`;
@@ -116,7 +116,7 @@
             botMessageFeedback.innerText = `Feedback: ${message.feedback}`;
             chatBody.appendChild(botMessageFeedback);
 
-            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+            chatBody.scrollTop = chatBody.scrollHeight; 
         };
 
         document.getElementById('submit').onclick = function () {
@@ -126,19 +126,19 @@
                 return;
             }
 
-            // Display user's message in the chat
+          
             const userMessage = document.createElement('div');
             userMessage.classList.add('message', 'user');
             userMessage.innerText = userPrompt;
             chatBody.appendChild(userMessage);
 
-            // Send the prompt to the server
+          
             const data = { type: "prompt", content: userPrompt };
             ws.send(JSON.stringify(data));
 
-            // Clear the input field
+          
             document.getElementById('userPrompt').value = "";
-            chatBody.scrollTop = chatBody.scrollHeight; // Scroll to the bottom
+            chatBody.scrollTop = chatBody.scrollHeight; 
         };
     </script>
 </body>
